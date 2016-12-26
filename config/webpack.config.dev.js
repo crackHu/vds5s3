@@ -127,7 +127,7 @@ module.exports = {
           plugins: [
             ['import', [{
               libraryName: "antd",
-              style: 'true'
+              style: true
             }]],
           ],
           // This is a feature of `babel-loader` for webpack (not Babel itself).
