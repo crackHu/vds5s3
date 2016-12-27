@@ -1,115 +1,115 @@
 const projectPath = 'http://172.16.1.127:8080/vds5s3'
 
-export functoin api() {
-	return {
-		smscp: {
-			base: `${projectPath}/v2/admin/smscp`,
-			findByPage: `${this.base}/findByPage`,
-			showById: `${this.base}/showById`,
-			addEntity: `${this.base}/addEntity`,
-			editByEntiry: `${this.base}/editByEntiry`,
+export const api = {
+	/*请求成功标识*/
+	reqCorrectCode: ['code', 'code == 1001'],
+	reqMessage: 'message',
+	reqData: 'data',
 
-		}
+	smscp: {
+		base: `${projectPath}/v2/admin/smscp`,
+
+		findByPage: function() {
+			return `${this.base}/findByPage`
+		},
+		showById: function() {
+			return `${this.base}/showById`
+		},
+		addEntity: function() {
+			return `${this.base}/addEntity`
+		},
+		editByEntiry: function() {
+			return `${this.base}/editByEntiry`
+		},
 	}
+
 }
 
 //************* Edit Table Config *************//
 export const EditTableConfig = {
+	/*数据源 属性*/
+	dataSourcePro: 'data.content',
 	/*表格字段*/
+	columnsId: 'smsCpId',
+	columnsDisplay: 'smsCpName',
 	columns: [{
-		title: 'Name',
-		dataIndex: 'name',
-		render: name => `${name.first} ${name.last}`,
-		width: '20%',
+		title: '短信用户名称',
+		dataIndex: 'smsCpName',
+		width: '10%',
+		render: {
+			link: true,
+			onClick: true,
+			modaltitle: `查 看 - {smsCpName}`
+		}
 	}, {
-		title: 'Gender',
-		dataIndex: 'gender',
-		width: '20%',
+		title: '短信用户appkey',
+		dataIndex: 'smsCpAppKey',
 	}, {
-		title: 'Email',
-		dataIndex: 'email',
-	}],
+		title: '短信用户secret',
+		dataIndex: 'smsCpSecret',
+	}, {
+		title: '是否删除',
+		dataIndex: 'smsIsRemove',
+		width: '10%',
+	}, {
+		title: '创建时间',
+		dataIndex: 'smsCreateTime',
+		width: '10%',
+		render: {
+			format: 'yyyy-MM-dd',
+		}
+	}, {
+		title: '修改时间',
+		dataIndex: 'smsModifyTime',
+		width: '10%',
+		render: {
+			format: 'yyyy-MM-dd',
+		}
+	}, ],
 	/*表单*/
 	form: {
 		width: 1000,
 		//vertical horizontal inline
 		layout: {
-			'horizontal': true
+			'vertical': true
 		},
-		itemLayout: {
-			labelCol: {
-				span: 5
-			},
-			wrapperCol: {
-				span: 19
-			},
-		},
+		/*表单控件*/
 		item: [{
-			label: '账号',
-			name: 'username',
+			label: '短信用户名称',
+			name: 'smsCpName',
 			required: true,
-			message: '请输入账号',
+			message: '不能为空',
 			type: 'input',
 			config: {
-				placeholder: '请输入账号',
-				style: {
-					width: 200
-				}
+				placeholder: '请输入短信用户名称',
 			}
 		}, {
-			label: '密码11',
-			name: 'password',
-			type: 'select',
-			options: [{
-				value: '无症状'
-			}, {
-				value: '多饮'
-			}, {
-				value: '多食'
-			}, ]
+			label: 'appkey',
+			name: 'smsCpAppKey',
+			required: true,
+			message: '不能为空',
+			type: 'input',
+			config: {
+				placeholder: '请输入短信用户appkey',
+			}
 		}, {
-			label: '账号',
-			name: 'username1',
+			label: 'secret',
+			name: 'smsCpSecret',
 			type: 'input',
 			required: true,
-			message: '请输入账号'
-		}, {
-			label: '密码11',
-			name: 'password1',
-			type: 'select',
-		}, {
-			label: '账号',
-			name: 'username2',
-			required: true,
-			message: '请输入账号',
-			type: 'cascader',
-			options: [{
-				value: 'zhejiang',
-				label: 'Zhejiang',
-				children: [{
-					value: 'hangzhou',
-					label: 'Hangzhou',
-					children: [{
-						value: 'xihu',
-						label: 'West Lake',
-					}],
-				}],
-			}, {
-				value: 'jiangsu',
-				label: 'Jiangsu',
-				children: [{
-					value: 'nanjing',
-					label: 'Nanjing',
-					children: [{
-						value: 'zhonghuamen',
-						label: 'Zhong Hua Men',
-					}],
-				}],
-			}]
-		}, {
-			label: '密码11',
-			name: 'password2',
-			type: 'datepicker',
-		}, ]
+			message: '不能为空',
+			config: {
+				placeholder: '请输入短信用户secret',
+			}
+		}, ],
+		/*控件布局*/
+		itemLayout: {
+			labelCol: {
+				span: 8
+			},
+			wrapperCol: {
+				span: 16
+			},
+		},
 	}
 }

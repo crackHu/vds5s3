@@ -8,10 +8,8 @@ import {
 
 import CollectionForm from './CollectionForm'
 import {
-    get,
-    post
-} from './utils/ajax';
-import fetch from 'isomorphic-fetch'
+    get as fetchGet
+} from './utils/fetch';
 import {
     api,
     EditTableConfig
@@ -28,8 +26,9 @@ export default class CollectionsPage extends React.Component {
         super(props);
         this.state = {
             modalVisible: false,
-            visible: false,
-            status: "新增",
+            modalStatus: undefined,
+            modalTitle: undefined,
+            modalData: undefined,
             dataSource: undefined,
         }
 
@@ -43,13 +42,49 @@ export default class CollectionsPage extends React.Component {
     componentDidMount = () => {}
 
     init = () => {
+        let {
+            columnsId,
+            columnsDisplay,
+        } = EditTableConfig
+
+        columns = columns.map(column => {
+            if (column.hasOwnProperty('render')) {
+                let render = column['render']
+                if (render && render.constructor == Object) {
+                    if ('format' in render) {
+                        let format = render.format
+                        column['render'] = text => {
+                            return new Date(parseInt(text)).format(format)
+                        }
+                    }
+                    if ('link' in render && 'onClick' in render) {
+                        if (render['link'] && render['onClick']) {
+                            column['render'] = text => {
+                                return <a>{text}</a>
+                            }
+                            column['onCellClick'] = record => {
+                                let title = render['modaltitle']
+                                let reg = new RegExp('\\{(.+?)\\}', "g");
+                                let arrMactches = title.match(reg)
+                                arrMactches.forEach(match => {
+                                    let rep = match.substring(1, match.length - 1)
+                                    title = title.replace(match, record[rep])
+                                })
+                                this.handelQuery(title, record[columnsId])
+                            }
+                        }
+                    }
+                }
+            }
+            return column
+        })
         columns.push({
             title: 'operation',
             dataIndex: 'operation',
             render: (text, record) => {
                 return (
                     <span>
-                        <a href="#" onClick={() => this.showModal(`编 辑 - ${record.name.first}`)}>Edit</a>
+                        <a href="#" onClick={() => this.showModal(`编 辑 - ${record[columnsDisplay]}`, 'uapdte')}>Edit</a>
                         <span className="ant-divider" />
                         <a href="#" onClick={this.delete}>Delete</a>
                         {/*
@@ -65,18 +100,18 @@ export default class CollectionsPage extends React.Component {
     }
 
     getDataSource = () => {
-        const {
-            findByPage
-        } = smscp
+        let dataSourcePro = EditTableConfig.dataSourcePro;
         const data = ''
 
-        fetch(`${findByPage}?${data}`).then(response => response.json())
-            .then(data => {
-                this.setState({
-                    dataSource: data.results
-                })
+        fetchGet(smscp.findByPage(), (data) => {
+            let dataSource
+            dataSourcePro.split('.').map(pro => {
+                dataSource = dataSource ? dataSource[pro] : data[pro]
             })
-            .catch(e => console.log("Oops, error", e))
+            this.setState({
+                dataSource
+            })
+        })
     }
 
     handleAdd = () => {
@@ -90,17 +125,33 @@ export default class CollectionsPage extends React.Component {
     }
 
 
-    showModal = (status) => {
+    showModal = (modalTitle, modalStatus) => {
         this.setState({
-            visible: true,
-            status,
+            modalVisible: true,
+            modalTitle,
+            modalStatus,
         });
     }
 
     handleCancel = () => {
         this.setState({
-            visible: false
+            modalVisible: false
         });
+    }
+
+    handelQuery = (title = '查 看', id) => {
+
+        fetchGet(`${smscp.showById()}?id=${id}`, (data) => {
+            this.setState({
+                modalData: data
+            }, this.showModal(title, 'query'))
+        })
+    }
+
+    onFieldsChange = (fields) => {
+        this.setState({
+            data: fields
+        })
     }
 
     handleCreate = () => {
@@ -113,7 +164,7 @@ export default class CollectionsPage extends React.Component {
             console.log('Received values of form: ', values);
             form.resetFields();
             this.setState({
-                visible: false,
+                modalVisible: false,
                 dataSource: this.state.dataSource.concat({
                     key: Date.now(),
                     name: values.name,
@@ -134,7 +185,7 @@ export default class CollectionsPage extends React.Component {
             console.log('Received values of form: ', values);
             form.resetFields();
             this.setState({
-                visible: false,
+                modalVisible: false,
                 dataSource: this.state.dataSource.concat({
                     key: Date.now(),
                     name: values.name,
@@ -168,7 +219,7 @@ export default class CollectionsPage extends React.Component {
                 <Button
                     className="editable-add-btn"
                     type="primary"
-                    onClick={() => this.showModal('新 增')}
+                    onClick={() => this.showModal('新 增', 'create')}
                 >
                     新 增
                 </Button>
@@ -181,17 +232,19 @@ export default class CollectionsPage extends React.Component {
 
                 <CollectionForm
                   ref={this.saveFormRef}
-                  visible={this.state.visible}
+                  visible={this.state.modalVisible}
                   onCancel={this.handleCancel}
                   onCreate={this.handleCreate}
                   onUpdate={this.handleUpdate}
-                  status={this.state.status}
+                  title={this.state.modalTitle}
+                  status={this.state.modalStatus}
+                  data={this.state.modalData}
                 />
                 
                 <Table
                     bordered
                     dataSource={dataSource}
-                    //onRowClick={() => this.showModal('更新')}
+                    //onRowClick={() => this.showModal('更 新', 'update')}
                     columns={columns}
                 />
             </div>

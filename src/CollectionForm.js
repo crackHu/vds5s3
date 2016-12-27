@@ -26,7 +26,6 @@ const getSelectOptions = (data) => {
     })
 }
 
-
 class CollectionForm extends React.Component {
 
     constructor(props) {
@@ -48,9 +47,11 @@ class CollectionForm extends React.Component {
             onCancel,
             onCreate,
             form,
+            title,
             status,
+            data
         } = this.props;
-
+        console.log(data)
         const {
             getFieldDecorator
         } = form;
@@ -113,7 +114,7 @@ class CollectionForm extends React.Component {
         return (
             <Modal
                 visible={visible}
-                title={status}
+                title={title}
                 okText={'保存'}
                 onCancel={onCancel}
                 onOk={onCreate}
@@ -131,4 +132,19 @@ class CollectionForm extends React.Component {
 
 }
 
-export default Form.create()(CollectionForm)
+function onFieldsChange(props, fields) {
+    console.log("CollectionForm onFieldsChange", props, fields)
+    props.onFieldsChange({
+        fields
+    });
+}
+
+function mapPropsToFields(props) {
+    console.log("CollectionForm mapPropsToFields", props)
+    return props.data || {}
+}
+
+export default Form.create(
+    onFieldsChange,
+    mapPropsToFields
+)(CollectionForm)
