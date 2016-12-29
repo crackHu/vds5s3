@@ -1,19 +1,35 @@
 import fetch from 'isomorphic-fetch'
 import {
-    logger
+    logger,
+    getFieldsValueObj,
+    parseParam,
 } from './util'
 import {
-    api,
+    API,
+    EntityConfig,
+    EditTableConfig,
 } from '../config'
 
+const __DEBUG__ = process.env.NODE_ENV === 'development'
 const {
     reqCorrectCode,
     reqMessage,
-} = api
+} = API
+const {
+    defaultSort,
+    defaultPage,
+    defaultSize,
+} = EditTableConfig
+const module = API.module
+const findByPageUrl = module['findByPage']()
+const showByIdUrl = module['showById']()
+const addEntityUrl = module['addEntity']()
+const editByEntiryUrl = module['editByEntiry']()
+const delByIdUrl = module['delById']()
 
 const reqCorrect = (data) => {
 
-    if (reqCorrectCode && reqCorrectCode.constructor == Array) {
+    if (reqCorrectCode && reqCorrectCode.constructor === Array) {
         let code, flag = false
         reqCorrectCode.map(item => {
             if (code) {
@@ -24,35 +40,98 @@ const reqCorrect = (data) => {
         })
         return flag
     } else {
-        console.error("Setting [reqCorrectCode] isn't right")
+        console.error(`Setting [reqCorrectCode: ${reqCorrectCode}] isn't right`)
     }
 }
 
-export function get(url, successCallback = null, errorCallback = null) {
-
-    fetch(url)
-        .then(response => response.json())
-        .then(data => {
-            if (reqCorrect(data)) {
-                if (typeof successCallback == 'function') {
-                    successCallback(data)
-                }
-            } else {
-                if (typeof errorCallback == 'function') {
-                    errorCallback(data)
-                }
-                logger({
-                    request: url,
-                    response: data
-                }, data[reqMessage], 'warn')
+let init = undefined
+async function get(url, failCallback) {
+    let message
+    try {
+        let response = await fetch(url, init)
+        let data = await response.json()
+        console.log('result', data)
+        if (reqCorrect(data)) {
+            return data
+        } else {
+            message = data[reqMessage]
+            if (failCallback && failCallback.constructor === Function) {
+                failCallback()
             }
-        })
-        .catch(e => {
+            logger({
+                request: url,
+                response: data
+            }, message, 'warn')
+            throw Error(message)
+        }
+    } catch (e) {
+        if (!message) {
+            message = e.message
             console.error("Oops, error", e)
             logger({
                 request: url,
-                fetchError: e
-            }, false, 'error')
-        })
+                fetchError: message
+            }, message, 'error')
+        }
+        throw Error(e)
+    } finally {
+        init = undefined
+    }
+}
 
+function post(url, data, failCallback) {
+    init = {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+            'Accept': 'application/json, text/plain, */*',
+            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+            'cache': "no-store"
+        },
+        body: parseParam(data)
+    }
+    return get(url, failCallback)
+}
+
+// ------ 表格数据源 ------ //
+export async function getDataSource(pageNo = defaultPage, pageSize = defaultSize, sort = defaultSort) {
+
+    pageNo = pageNo < 1 ? 1 : pageNo
+
+    let dataSource,
+        url = `${findByPageUrl}?page=${pageNo - 1}&size=${pageSize}&sort=${sort}`
+
+    let data = await get(url)
+        // dataSourcePro.split('.').map(pro => {
+        //     dataSource = dataSource ? dataSource[pro] : data[pro]
+        // })
+    return data
+}
+
+// ------ Modal表单数据源 ------ //
+export async function getModalDataById(id) {
+
+    let data = await get(`${showByIdUrl}?id=${id}`)
+    let entity = EntityConfig['showById']
+    let entityProperty = entity['property']
+    let modalData = getFieldsValueObj(data[entityProperty], entity)
+    return modalData
+}
+
+// ------ 新增记录 ------ //
+export async function addItem(entity) {
+    let data = await post(`${addEntityUrl}`, entity)
+    alert(data[reqMessage])
+}
+
+// ------ 编辑记录 ------ //
+export async function updateItem(entity) {
+    let data = await post(`${editByEntiryUrl}`, entity)
+    alert(data[reqMessage])
+}
+
+// ------ 删除记录 ------ //
+export async function deleteItem(id) {
+    let data = await get(`${delByIdUrl}?id=${id}`)
+    alert(data[reqMessage])
 }

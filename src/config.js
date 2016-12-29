@@ -1,13 +1,34 @@
-const projectPath = 'http://172.16.1.127:8080/vds5s3'
+//const ProjectPath = 'http://172.16.1.127:8080/vds5s3'
 
-export const api = {
+const ProjectPath = '/vds5s3'
+
+export const DATE_FORMAT_STRING = 'YYYY-MM-DD HH:mm:ss'
+
+/*功能配置*/
+export const FUNCTION = {
+	declare: {
+		CREATE: 'CREATE',
+		DELETE: 'DELETE',
+		UPDATE: 'UPDATE',
+		QUERY: 'QUERY',
+	},
+	/*该插件拥有的功能*/
+	plugin: {
+		CREATE: true,
+		DELETE: true,
+		UPDATE: true,
+		QUERY: true
+	}
+}
+
+export const API = {
 	/*请求成功标识*/
 	reqCorrectCode: ['code', 'code == 1001'],
 	reqMessage: 'message',
 	reqData: 'data',
 
-	smscp: {
-		base: `${projectPath}/v2/admin/smscp`,
+	module: {
+		base: `${ProjectPath}/v2/admin/smscp`,
 
 		findByPage: function() {
 			return `${this.base}/findByPage`
@@ -21,17 +42,45 @@ export const api = {
 		editByEntiry: function() {
 			return `${this.base}/editByEntiry`
 		},
+		delById: function() {
+			return `${this.base}/delById`
+		},
 	}
 
+}
+
+//************* Entity Config *************//
+export const EntityConfig = {
+	showById: {
+		property: 'data',
+		fields: [
+			'smsCpAppKey',
+			'smsCpId',
+			'smsCpName',
+			'smsCpSecret',
+			'smsIsRemove',
+		],
+		multiFields: [],
+		dateFields: [
+			'smsCreateTime',
+			'smsModifyTime',
+		],
+		cascadeFields: [],
+
+	}
 }
 
 //************* Edit Table Config *************//
 export const EditTableConfig = {
 	/*数据源 属性*/
 	dataSourcePro: 'data.content',
+	dataSourceTotal: 'data.totalElements',
 	/*表格字段*/
 	columnsId: 'smsCpId',
 	columnsDisplay: 'smsCpName',
+	defaultSort: 'smsModifyTime,desc',
+	defaultPage: 1,
+	defaultSize: 10,
 	columns: [{
 		title: '短信用户名称',
 		dataIndex: 'smsCpName',
@@ -56,14 +105,14 @@ export const EditTableConfig = {
 		dataIndex: 'smsCreateTime',
 		width: '10%',
 		render: {
-			format: 'yyyy-MM-dd',
+			format: 'YYYY-MM-DD',
 		}
 	}, {
 		title: '修改时间',
 		dataIndex: 'smsModifyTime',
 		width: '10%',
 		render: {
-			format: 'yyyy-MM-dd',
+			format: 'YYYY-MM-DD',
 		}
 	}, ],
 	/*表单*/
@@ -80,6 +129,11 @@ export const EditTableConfig = {
 			required: true,
 			message: '不能为空',
 			type: 'input',
+			showIn: {
+				CREATE: true,
+				UPDATE: true,
+				QUERY: true
+			},
 			config: {
 				placeholder: '请输入短信用户名称',
 			}
@@ -89,6 +143,11 @@ export const EditTableConfig = {
 			required: true,
 			message: '不能为空',
 			type: 'input',
+			showIn: {
+				CREATE: true,
+				UPDATE: true,
+				QUERY: true
+			},
 			config: {
 				placeholder: '请输入短信用户appkey',
 			}
@@ -98,7 +157,50 @@ export const EditTableConfig = {
 			type: 'input',
 			required: true,
 			message: '不能为空',
+			showIn: {
+				CREATE: true,
+				UPDATE: true,
+				QUERY: true
+			},
 			config: {
+				placeholder: '请输入短信用户secret',
+			}
+		}, {
+			label: '创建时间',
+			name: 'smsCreateTime',
+			type: 'datepicker',
+			format: DATE_FORMAT_STRING,
+			required: true,
+			message: '不能为空',
+			showIn: {
+				CREATE: false,
+				UPDATE: false,
+				QUERY: true
+			},
+			config: {
+				showTime: true,
+				style: {
+					width: 197.33
+				},
+				placeholder: '请输入短信用户secret',
+			}
+		}, {
+			label: '修改时间',
+			name: 'smsModifyTime',
+			type: 'datepicker',
+			format: DATE_FORMAT_STRING,
+			required: true,
+			message: '不能为空',
+			showIn: {
+				CREATE: false,
+				UPDATE: false,
+				QUERY: true
+			},
+			config: {
+				showTime: true,
+				style: {
+					width: 197.33
+				},
 				placeholder: '请输入短信用户secret',
 			}
 		}, ],

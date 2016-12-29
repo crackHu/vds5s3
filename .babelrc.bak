@@ -1,0 +1,9 @@
+{
+   "presets": ["es2015", "react-app", "stage-3"],
+   "plugins": ['transform-runtime', 'transform-async-to-generator', 
+      ['import', [{
+         libraryName: "antd",
+         style: true
+      }]], 
+   ]
+}

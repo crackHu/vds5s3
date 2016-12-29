@@ -4,33 +4,72 @@ import React, {
 import {
     Table,
     Button,
+    Popconfirm,
 } from 'antd';
 
 import CollectionForm from './CollectionForm'
 import {
-    get as fetchGet
+    getFieldsValueObj,
+} from './utils/util'
+
+import {
+    getDataSource,
+    getModalDataById,
+    addItem,
+    updateItem,
+    deleteItem,
 } from './utils/fetch';
 import {
-    api,
-    EditTableConfig
+    FUNCTION,
+    EditTableConfig,
 } from './config'
 
 const {
-    smscp
-} = api
-let columns = EditTableConfig.columns;
+    declare,
+    plugin
+} = FUNCTION
+let {
+    columns,
+    columnsId,
+    columnsDisplay,
+    defaultPage,
+    defaultSize,
+    defaultSort,
+    dataSourcePro,
+    dataSourceTotal,
+} = EditTableConfig;
+const {
+    CREATE,
+    DELETE,
+    UPDATE,
+    QUERY,
+} = declare
+const PLUGIN_FUNC = Object.keys(plugin).map(func => {
+    return plugin[func] ? func : Date.now()
+})
 
 export default class CollectionsPage extends React.Component {
 
     constructor(props) {
         super(props);
         this.state = {
+            dataSource: undefined,
+            pageSize: defaultSize,
+            pageNo: defaultPage,
+            sort: defaultSort,
+            total: undefined,
+
             modalVisible: false,
             modalStatus: undefined,
             modalTitle: undefined,
+            modalId: undefined,
             modalData: undefined,
-            dataSource: undefined,
         }
+
+        this.HAS_CREATE = PLUGIN_FUNC.indexOf(CREATE) > -1
+        this.HAS_DELETE = PLUGIN_FUNC.indexOf(DELETE) > -1
+        this.HAS_UPDATE = PLUGIN_FUNC.indexOf(UPDATE) > -1
+        this.HAS_QUERY = PLUGIN_FUNC.indexOf(QUERY) > -1
 
         this.init()
     }
@@ -41,16 +80,31 @@ export default class CollectionsPage extends React.Component {
 
     componentDidMount = () => {}
 
+    getDataSource = (pageNo = this.state.defaultPage,
+        pageSize = this.state.defaultSize,
+        sort = this.state.defaultSort) => {
+
+        getDataSource(pageNo, pageSize, sort).then(data => {
+            let dataSource, total
+            dataSourcePro.split('.').map(pro => {
+                dataSource = dataSource ? dataSource[pro] : data[pro]
+            })
+            dataSourceTotal.split('.').map(pro => {
+                total = total ? total[pro] : data[pro]
+            })
+            this.setState({
+                dataSource,
+                total
+            })
+        })
+    }
+
     init = () => {
-        let {
-            columnsId,
-            columnsDisplay,
-        } = EditTableConfig
 
         columns = columns.map(column => {
             if (column.hasOwnProperty('render')) {
                 let render = column['render']
-                if (render && render.constructor == Object) {
+                if (render && render.constructor === Object) {
                     if ('format' in render) {
                         let format = render.format
                         column['render'] = text => {
@@ -58,7 +112,7 @@ export default class CollectionsPage extends React.Component {
                         }
                     }
                     if ('link' in render && 'onClick' in render) {
-                        if (render['link'] && render['onClick']) {
+                        if (this.HAS_QUERY && render['link'] && render['onClick']) {
                             column['render'] = text => {
                                 return <a>{text}</a>
                             }
@@ -70,60 +124,41 @@ export default class CollectionsPage extends React.Component {
                                     let rep = match.substring(1, match.length - 1)
                                     title = title.replace(match, record[rep])
                                 })
-                                this.handelQuery(title, record[columnsId])
+                                this.handleQuery(title, record[columnsId])
                             }
+                        } else {
+                            delete column['render']
                         }
                     }
                 }
             }
             return column
         })
-        columns.push({
-            title: 'operation',
-            dataIndex: 'operation',
-            render: (text, record) => {
-                return (
-                    <span>
-                        <a href="#" onClick={() => this.showModal(`编 辑 - ${record[columnsDisplay]}`, 'uapdte')}>Edit</a>
-                        <span className="ant-divider" />
-                        <a href="#" onClick={this.delete}>Delete</a>
-                        {/*
-                            <span className="ant-divider" />
-                            <a href="#" className="ant-dropdown-link">
-                                更多 <Icon type="down" />
-                            </a>
-                        */}
-                    </span>
-                )
-            }
-        })
-    }
 
-    getDataSource = () => {
-        let dataSourcePro = EditTableConfig.dataSourcePro;
-        const data = ''
-
-        fetchGet(smscp.findByPage(), (data) => {
-            let dataSource
-            dataSourcePro.split('.').map(pro => {
-                dataSource = dataSource ? dataSource[pro] : data[pro]
+        if (this.HAS_UPDATE || this.HAS_DELETE) {
+            columns.push({
+                title: '操作',
+                dataIndex: 'operation',
+                render: (text, record) => {
+                    let title = `编 辑 - ${record[columnsDisplay]}`
+                    let id = record[columnsId]
+                    let edit = this.HAS_UPDATE ? <a href="#" onClick={() => this.handleEdit(title, id)}>编辑</a> : null
+                    let drop = this.HAS_DELETE ? (
+                        <Popconfirm title="确定删除?" onConfirm={() => this.handleDelete(id)}>
+                            <a href="#">删除</a>
+                        </Popconfirm>
+                    ) : null
+                    return (
+                        <span>
+                            {edit}
+                            {this.HAS_UPDATE && this.HAS_DELETE ? <span className="ant-divider" /> : null}
+                            {drop}
+                        </span>
+                    )
+                }
             })
-            this.setState({
-                dataSource
-            })
-        })
+        }
     }
-
-    handleAdd = () => {
-        this.handleModalVisible(true)
-    }
-
-    handleModalVisible = (visible = true) => {
-        this.setState({
-            modalVisible: visible
-        })
-    }
-
 
     showModal = (modalTitle, modalStatus) => {
         this.setState({
@@ -133,25 +168,29 @@ export default class CollectionsPage extends React.Component {
         });
     }
 
+    handleModalVisible = (visible = true) => {
+        this.setState({
+            modalVisible: visible
+        })
+    }
+
     handleCancel = () => {
         this.setState({
+            modalData: null,
             modalVisible: false
         });
     }
 
-    handelQuery = (title = '查 看', id) => {
-
-        fetchGet(`${smscp.showById()}?id=${id}`, (data) => {
+    handleQuery = (title = '查 看', id) => {
+        getModalDataById(id).then(modalData => {
             this.setState({
-                modalData: data
-            }, this.showModal(title, 'query'))
+                modalData
+            }, this.showModal(title, QUERY))
         })
     }
 
-    onFieldsChange = (fields) => {
-        this.setState({
-            data: fields
-        })
+    handleAdd = () => {
+        this.handleModalVisible(true)
     }
 
     handleCreate = () => {
@@ -160,19 +199,26 @@ export default class CollectionsPage extends React.Component {
             if (err) {
                 return;
             }
-
             console.log('Received values of form: ', values);
             form.resetFields();
-            this.setState({
-                modalVisible: false,
-                dataSource: this.state.dataSource.concat({
-                    key: Date.now(),
-                    name: values.name,
-                    age: 2016 - values.birthdate.weekYear(),
-                    address: values.address.join(' '),
-                })
-            });
+            addItem(values).then(() => {
+                this.setState({
+                    modalVisible: false
+                }, () => this.getDataSource())
+            })
         });
+    }
+
+    handleEdit = (title = '编 辑 ', id) => {
+        this.setState({
+            modalId: id
+        }, () => {
+            getModalDataById(id).then(modalData => {
+                this.setState({
+                    modalData
+                }, this.showModal(title, UPDATE))
+            })
+        })
     }
 
     handleUpdate = () => {
@@ -181,49 +227,83 @@ export default class CollectionsPage extends React.Component {
             if (err) {
                 return;
             }
-
             console.log('Received values of form: ', values);
             form.resetFields();
-            this.setState({
-                modalVisible: false,
-                dataSource: this.state.dataSource.concat({
-                    key: Date.now(),
-                    name: values.name,
-                    age: 2016 - values.birthdate.weekYear(),
-                    address: values.address.join(' '),
-                })
-            });
+            Object.assign(values, {
+                [columnsId]: this.state.modalId
+            })
+            updateItem(values).then(() => {
+                this.setState({
+                    modalVisible: false
+                }, () => this.getDataSource())
+            })
         });
+    }
+
+    handleDelete = (id) => {
+        deleteItem(id).then(() => {
+            this.getDataSource()
+        })
+    }
+
+    onFieldsChange = (fields) => {
+        let modalData = this.state.modalData
+        this.setState({
+            modalData: {
+                ...modalData,
+                ...fields
+            }
+        }, console.log('onFieldsChange', fields, this.state.modalData))
     }
 
     saveFormRef = (form) => {
         this.form = form;
     }
 
-    delete = () => {
-        let len = this.state.dataSource.length
-        let data = this.state.dataSource.slice()
-        data.splice(len - 1, 1)
-
-        this.setState({
-            dataSource: data
-        });
-    }
-
     render() {
 
         const dataSource = this.state.dataSource
-
-        return (
-            <div>
+        let addBtn =
+            this.HAS_CREATE ?
+            (
                 <Button
                     className="editable-add-btn"
                     type="primary"
-                    onClick={() => this.showModal('新 增', 'create')}
+                    onClick={() => this.showModal('新 增', CREATE)}
                 >
                     新 增
                 </Button>
+            ) : null
+        const pagination = {
+            current: this.state.pageNo,
+            total: this.state.total,
+            showSizeChanger: true,
+            onShowSizeChange: (current, pageSize) => {
+                this.setState({
+                    pageNo: current,
+                    pageSize: pageSize
+                }, () => {
+                    this.getDataSource(current, pageSize)
+                })
+                console.log('Current: ', current, '; PageSize: ', pageSize);
+            },
+            onChange: (current) => {
+                console.log('onChange', this.state)
+                this.setState({
+                    pageNo: current,
+                }, () => {
+                    this.getDataSource(current, this.state.pageSize)
+                    console.log('Current: ', current, this.state);
+                })
+            },
+            showQuickJumper: true,
+            pageSize: this.state.pageSize,
+            showTotal: (total, range) => `共 ${total} 条 （${range[0]}-${range[1]}）`
+        };
 
+        return (
+            <div>
+                {addBtn}
                 {/*<DDModal
                     title={'Create a new collection'}
                     width={'50%'}
@@ -239,13 +319,15 @@ export default class CollectionsPage extends React.Component {
                   title={this.state.modalTitle}
                   status={this.state.modalStatus}
                   data={this.state.modalData}
+                  onFieldsChange={this.onFieldsChange}
                 />
                 
                 <Table
                     bordered
                     dataSource={dataSource}
-                    //onRowClick={() => this.showModal('更 新', 'update')}
+                    //onRowClick={() => this.showModal('更 新', UPDATE)}
                     columns={columns}
+                    pagination={pagination}
                 />
             </div>
         );
