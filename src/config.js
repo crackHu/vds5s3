@@ -1,6 +1,17 @@
-//const ProjectPath = 'http://172.16.1.127:8080/vds5s3'
+//const proxy = 'http://172.16.1.127:8080'
+//const localhost = ’http://172.16.1.213:8080‘
 
-const ProjectPath = '/vds5s3'
+export const __DEBUG__ = process.env.NODE_ENV === 'development'
+
+export const APP = {
+	host: '172.16.1.127:8080',
+	projectName: '/vds5s3',
+	buildPath: 'build',
+
+	getBaseUrl: function() {
+		return __DEBUG__ ? this.projectName : this.host + this.projectName
+	}
+}
 
 export const DATE_FORMAT_STRING = 'YYYY-MM-DD HH:mm:ss'
 
@@ -23,12 +34,12 @@ export const FUNCTION = {
 
 export const API = {
 	/*请求成功标识*/
-	reqCorrectCode: ['code', 'code == 1001'],
+	reqCorrectCode: ['code', 'code === \'1001\''],
 	reqMessage: 'message',
 	reqData: 'data',
 
 	module: {
-		base: `${ProjectPath}/v2/admin/smscp`,
+		base: `${APP.getBaseUrl()}/v2/admin/smscp`,
 
 		findByPage: function() {
 			return `${this.base}/findByPage`

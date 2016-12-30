@@ -1,3 +1,6 @@
+import {
+    message,
+} from 'antd'
 import fetch from 'isomorphic-fetch'
 import {
     logger,
@@ -33,6 +36,7 @@ const reqCorrect = (data) => {
         let code, flag = false
         reqCorrectCode.map(item => {
             if (code) {
+                console.log('reqCorrect', item, code, eval(item))
                 flag = eval(item)
             } else {
                 code = data[item]
@@ -102,9 +106,6 @@ export async function getDataSource(pageNo = defaultPage, pageSize = defaultSize
         url = `${findByPageUrl}?page=${pageNo - 1}&size=${pageSize}&sort=${sort}`
 
     let data = await get(url)
-        // dataSourcePro.split('.').map(pro => {
-        //     dataSource = dataSource ? dataSource[pro] : data[pro]
-        // })
     return data
 }
 
@@ -121,17 +122,17 @@ export async function getModalDataById(id) {
 // ------ 新增记录 ------ //
 export async function addItem(entity) {
     let data = await post(`${addEntityUrl}`, entity)
-    alert(data[reqMessage])
+    message.success(data[reqMessage])
 }
 
 // ------ 编辑记录 ------ //
 export async function updateItem(entity) {
     let data = await post(`${editByEntiryUrl}`, entity)
-    alert(data[reqMessage])
+    message.success(data[reqMessage])
 }
 
 // ------ 删除记录 ------ //
 export async function deleteItem(id) {
     let data = await get(`${delByIdUrl}?id=${id}`)
-    alert(data[reqMessage])
+    message.success(data[reqMessage])
 }

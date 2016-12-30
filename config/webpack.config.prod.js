@@ -87,17 +87,15 @@ module.exports = {
       'react-native': 'react-native-web'
     }
   },
-  
+
   module: {
     // First, run the linter.
     // It's important to do this before Babel processes the JS.
-    preLoaders: [
-      {
-        test: /\.(js|jsx)$/,
-        loader: 'eslint',
-        include: paths.appSrc
-      }
-    ],
+    preLoaders: [{
+      test: /\.(js|jsx)$/,
+      loader: 'eslint',
+      include: paths.appSrc
+    }],
     loaders: [
       // Default loader: load all assets that are not handled
       // by other loaders with the url loader.
@@ -115,6 +113,7 @@ module.exports = {
         exclude: [
           /\.html$/,
           /\.(js|jsx)$/,
+          /\.less$/,
           /\.css$/,
           /\.json$/,
           /\.svg$/
@@ -130,7 +129,19 @@ module.exports = {
         test: /\.(js|jsx)$/,
         include: paths.appSrc,
         loader: 'babel',
-        
+        query: {
+          plugins: [
+            ['import', [{
+              libraryName: "antd",
+              style: true
+            }]],
+          ],
+        }
+      },
+      // 解析 less 文件，并加入变量覆盖配置
+      {
+        test: /\.less$/,
+        loader: 'style!css!postcss!less?{modifyVars:{"@primary-color":"#1DA57A"}}'
       },
       // The notation here is somewhat confusing.
       // "postcss" loader applies autoprefixer to our CSS.
@@ -147,7 +158,7 @@ module.exports = {
       {
         test: /\.css$/,
         loader: ExtractTextPlugin.extract('style', 'css?importLoaders=1!postcss')
-        // Note: this won't work without `new ExtractTextPlugin()` in `plugins`.
+          // Note: this won't work without `new ExtractTextPlugin()` in `plugins`.
       },
       // JSON is not enabled by default in Webpack but both Node and Browserify
       // allow it implicitly so we also enable it.
@@ -165,7 +176,7 @@ module.exports = {
       }
     ]
   },
-  
+
   // We use PostCSS for autoprefixing only.
   postcss: function() {
     return [
