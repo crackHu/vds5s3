@@ -1,9 +1,11 @@
 var path = require('path');
 var fs = require('fs');
+var config = require('../src/plugin_config/config')
 
 // Make sure any symlinks in the project folder are resolved:
 // https://github.com/facebookincubator/create-react-app/issues/637
 var appDirectory = fs.realpathSync(process.cwd());
+
 function resolveApp(relativePath) {
   return path.resolve(appDirectory, relativePath);
 }
@@ -31,7 +33,7 @@ var nodePaths = (process.env.NODE_PATH || '')
 
 // config after eject: we're in ./config/
 module.exports = {
-  appBuild: resolveApp('build'),
+  appBuild: resolveApp(config.APP.buildPath || 'build'),
   appPublic: resolveApp('public'),
   appHtml: resolveApp('public/index.html'),
   appIndexJs: resolveApp('src/index.js'),

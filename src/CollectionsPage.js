@@ -22,7 +22,7 @@ import {
 import {
     FUNCTION,
     EditTableConfig,
-} from './config'
+} from './plugin_config/config'
 
 const {
     declare,
@@ -135,13 +135,21 @@ export default class CollectionsPage extends React.Component {
             return column
         })
 
-        if (this.HAS_UPDATE || this.HAS_DELETE) {
+        const {
+            pageNo,
+            pageSize,
+        } = this.state
+
+        this.genSerialNumber(false, pageNo, pageSize)
+        if (this.HAS_QUERY || this.HAS_UPDATE || this.HAS_DELETE) {
             columns.push({
                 title: '操作',
                 dataIndex: 'operation',
                 render: (text, record) => {
                     let title = `编 辑 - ${record[columnsDisplay]}`
                     let id = record[columnsId]
+
+                    let query = this.HAS_QUERY ? <a href="#" onClick={() => this.handleQuery(title, id)}>查看</a> : null
                     let edit = this.HAS_UPDATE ? <a href="#" onClick={() => this.handleEdit(title, id)}>编辑</a> : null
                     let drop = this.HAS_DELETE ? (
                         <Popconfirm title="确定删除?" onConfirm={() => this.handleDelete(id)}>
@@ -150,6 +158,8 @@ export default class CollectionsPage extends React.Component {
                     ) : null
                     return (
                         <span>
+                            {query}
+                            {this.HAS_QUERY && this.HAS_UPDATE ? <span className="ant-divider" /> : null}
                             {edit}
                             {this.HAS_UPDATE && this.HAS_DELETE ? <span className="ant-divider" /> : null}
                             {drop}
@@ -158,6 +168,17 @@ export default class CollectionsPage extends React.Component {
                 }
             })
         }
+    }
+
+    genSerialNumber = (isExist = true, pageNo = this.state.pageNo, pageSize = this.state.pageSize) => {
+        if (isExist) {
+            columns.shift()
+        }
+        columns.unshift({
+            title: '序号',
+            dataIndex: 'index',
+            render: (text, record, index) => (pageNo - 1) * pageSize + (index + 1)
+        })
     }
 
     showModal = (modalTitle, modalStatus) => {
@@ -286,15 +307,18 @@ export default class CollectionsPage extends React.Component {
                     this.getDataSource(current, pageSize)
                 })
                 console.log('Current: ', current, '; PageSize: ', pageSize);
+                this.genSerialNumber(true, current, pageSize)
             },
             onChange: (current) => {
                 console.log('onChange', this.state)
+                const pageSize = this.state.pageSize
                 this.setState({
                     pageNo: current,
                 }, () => {
-                    this.getDataSource(current, this.state.pageSize)
+                    this.getDataSource(current, pageSize)
                     console.log('Current: ', current, this.state);
                 })
+                this.genSerialNumber(true, current, pageSize)
             },
             showQuickJumper: true,
             pageSize: this.state.pageSize,

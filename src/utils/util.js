@@ -1,7 +1,7 @@
 import moment from 'moment'
 import {
   DATE_FORMAT_STRING,
-} from '../config'
+} from '../plugin_config/config'
 
 Date.prototype.format = function(format) {
   var o = {
@@ -30,9 +30,9 @@ Date.prototype.format = function(format) {
 export function parseParam(param, key = null) {
   var paramStr = "";
   let type = typeof param
-  if (type == 'string' || type == 'number' || type == 'boolean') {
+  if (type === 'string' || type === 'number' || type === 'boolean') {
     paramStr += "&" + key + "=" + encodeURIComponent(param);
-  } else if (type == 'object' && param.constructor == Object) {
+  } else if (type === 'object' && param.constructor === Object) {
     Object.keys(param).forEach(key => {
       paramStr += parseParam(param[key], key);
     })

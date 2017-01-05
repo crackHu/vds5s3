@@ -11,7 +11,7 @@ import {
     API,
     EntityConfig,
     EditTableConfig,
-} from '../config'
+} from '../plugin_config/config'
 
 const __DEBUG__ = process.env.NODE_ENV === 'development'
 const {
@@ -27,7 +27,7 @@ const module = API.module
 const findByPageUrl = module['findByPage']()
 const showByIdUrl = module['showById']()
 const addEntityUrl = module['addEntity']()
-const editByEntiryUrl = module['editByEntiry']()
+const editByEntityUrl = module['editByEntity']()
 const delByIdUrl = module['delById']()
 
 const reqCorrect = (data) => {
@@ -127,7 +127,7 @@ export async function addItem(entity) {
 
 // ------ 编辑记录 ------ //
 export async function updateItem(entity) {
-    let data = await post(`${editByEntiryUrl}`, entity)
+    let data = await post(`${editByEntityUrl}`, entity)
     message.success(data[reqMessage])
 }
 

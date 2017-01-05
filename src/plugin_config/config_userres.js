@@ -4,12 +4,12 @@
 export const __DEBUG__ = process.env.NODE_ENV === 'development'
 
 export const APP = {
-	host: '172.16.1.127:8080',
-	projectName: '/vds5s3',
+	host: '172.16.1.213:8080',
+	projectName: 'vds5s3_smscp',
 	buildPath: 'build',
 
 	getBaseUrl: function() {
-		return __DEBUG__ ? this.projectName : this.host + this.projectName
+		return __DEBUG__ ? `/${this.projectName}` : `http://${this.host}/${this.projectName}`
 	}
 }
 
@@ -39,7 +39,7 @@ export const API = {
 	reqData: 'data',
 
 	module: {
-		base: `${APP.getBaseUrl()}/v2/admin/smscp`,
+		base: `${APP.getBaseUrl()}/v2/admin/user/userresources`,
 
 		findByPage: function() {
 			return `${this.base}/findByPage`
@@ -50,8 +50,8 @@ export const API = {
 		addEntity: function() {
 			return `${this.base}/addEntity`
 		},
-		editByEntiry: function() {
-			return `${this.base}/editByEntiry`
+		editByEntity: function() {
+			return `${this.base}/editByEntity`
 		},
 		delById: function() {
 			return `${this.base}/delById`
@@ -65,16 +65,15 @@ export const EntityConfig = {
 	showById: {
 		property: 'data',
 		fields: [
-			'smsCpAppKey',
-			'smsCpId',
-			'smsCpName',
-			'smsCpSecret',
-			'smsIsRemove',
+			'rsId',
+			'rsName',
+			'rsUrl',
+			'roIsRemove',
 		],
 		multiFields: [],
 		dateFields: [
-			'smsCreateTime',
-			'smsModifyTime',
+			'rsCreateTime',
+			'rsModifyTime',
 		],
 		cascadeFields: [],
 
@@ -87,40 +86,37 @@ export const EditTableConfig = {
 	dataSourcePro: 'data.content',
 	dataSourceTotal: 'data.totalElements',
 	/*表格字段*/
-	columnsId: 'smsCpId',
-	columnsDisplay: 'smsCpName',
-	defaultSort: 'smsModifyTime,desc',
+	columnsId: 'rsId',
+	columnsDisplay: 'rsName',
+	defaultSort: 'rsModifyTime,desc',
 	defaultPage: 1,
 	defaultSize: 10,
 	columns: [{
-		title: '短信用户名称',
-		dataIndex: 'smsCpName',
+		title: '资源名称',
+		dataIndex: 'rsName',
 		width: '10%',
 		render: {
 			link: true,
 			onClick: true,
-			modaltitle: `查 看 - {smsCpName}`
+			modaltitle: `查 看 - {rsName}`
 		}
 	}, {
-		title: '短信用户appkey',
-		dataIndex: 'smsCpAppKey',
-	}, {
-		title: '短信用户secret',
-		dataIndex: 'smsCpSecret',
+		title: '资源地址',
+		dataIndex: 'rsUrl',
 	}, {
 		title: '是否删除',
-		dataIndex: 'smsIsRemove',
+		dataIndex: 'rsIsRemove',
 		width: '10%',
 	}, {
 		title: '创建时间',
-		dataIndex: 'smsCreateTime',
+		dataIndex: 'rsCreateTime',
 		width: '10%',
 		render: {
 			format: 'YYYY-MM-DD',
 		}
 	}, {
 		title: '修改时间',
-		dataIndex: 'smsModifyTime',
+		dataIndex: 'rsModifyTime',
 		width: '10%',
 		render: {
 			format: 'YYYY-MM-DD',
@@ -135,8 +131,8 @@ export const EditTableConfig = {
 		},
 		/*表单控件*/
 		item: [{
-			label: '短信用户名称',
-			name: 'smsCpName',
+			label: '资源名称',
+			name: 'rsName',
 			required: true,
 			message: '不能为空',
 			type: 'input',
@@ -146,11 +142,11 @@ export const EditTableConfig = {
 				QUERY: true
 			},
 			config: {
-				placeholder: '请输入短信用户名称',
+				placeholder: '请输入资源名称',
 			}
 		}, {
-			label: 'appkey',
-			name: 'smsCpAppKey',
+			label: '资源地址',
+			name: 'rsUrl',
 			required: true,
 			message: '不能为空',
 			type: 'input',
@@ -160,25 +156,11 @@ export const EditTableConfig = {
 				QUERY: true
 			},
 			config: {
-				placeholder: '请输入短信用户appkey',
-			}
-		}, {
-			label: 'secret',
-			name: 'smsCpSecret',
-			type: 'input',
-			required: true,
-			message: '不能为空',
-			showIn: {
-				CREATE: true,
-				UPDATE: true,
-				QUERY: true
-			},
-			config: {
-				placeholder: '请输入短信用户secret',
+				placeholder: '请输入资源地址',
 			}
 		}, {
 			label: '创建时间',
-			name: 'smsCreateTime',
+			name: 'rsCreateTime',
 			type: 'datepicker',
 			format: DATE_FORMAT_STRING,
 			required: true,
@@ -193,11 +175,11 @@ export const EditTableConfig = {
 				style: {
 					width: 197.33
 				},
-				placeholder: '请输入短信用户secret',
+				placeholder: '请选择创建时间',
 			}
 		}, {
 			label: '修改时间',
-			name: 'smsModifyTime',
+			name: 'rsModifyTime',
 			type: 'datepicker',
 			format: DATE_FORMAT_STRING,
 			required: true,
@@ -212,7 +194,7 @@ export const EditTableConfig = {
 				style: {
 					width: 197.33
 				},
-				placeholder: '请输入短信用户secret',
+				placeholder: '请选择修改时间',
 			}
 		}, ],
 		/*控件布局*/

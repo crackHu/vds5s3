@@ -2,8 +2,7 @@
   "name": "vds5s3",
   "version": "0.9.0",
   "private": true,
-  "homepage": "/vds5s3/build/",
-  "proxy": "http://172.16.1.213:8080",
+  "proxy": "http://localhost:8080",
   "devDependencies": {
     "autoprefixer": "6.5.1",
     "babel-core": "6.17.0",

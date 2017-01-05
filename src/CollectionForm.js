@@ -17,7 +17,7 @@ import {
 import {
     FUNCTION,
     EditTableConfig
-} from './config'
+} from './plugin_config/config'
 import {
     logger
 } from './utils/util'
