@@ -8,6 +8,9 @@ var url = require('url');
 var paths = require('./paths');
 var getClientEnvironment = require('./env');
 var config = require('../src/plugin_config/config')
+  // antd-mobile
+const path = require('path');
+const pxtorem = require('postcss-pxtorem');
 
 
 
@@ -82,7 +85,9 @@ module.exports = {
     // We also include JSX as a common component filename extension to support
     // some tools, although we do not recommend using it, see:
     // https://github.com/facebookincubator/create-react-app/issues/290
-    extensions: ['.js', '.json', '.jsx', ''],
+    // antd-mobile
+    modulesDirectories: ['node_modules', path.join(__dirname, '../node_modules')],
+    extensions: ['.web.js', '.js', '.json', '.jsx', ''],
     alias: {
       // Support React Native Web
       // https://www.smashingmagazine.com/2016/08/a-glimpse-into-the-future-with-react-native-for-web/
@@ -136,6 +141,9 @@ module.exports = {
             ['import', [{
               libraryName: "antd",
               style: true
+            }, {
+              "libraryName": "antd-mobile",
+              "style": true,
             }]],
           ],
         }
@@ -190,6 +198,11 @@ module.exports = {
           'not ie < 9', // React doesn't support IE8 anyway
         ]
       }),
+      // antd-mobile
+      pxtorem({
+        rootValue: 100,
+        propWhiteList: [],
+      })
     ];
   },
   plugins: [
