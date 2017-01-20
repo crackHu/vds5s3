@@ -11,39 +11,12 @@ export default class Home extends React.Component {
 	render() {
 		return (
 			<div className="starter">
-				<ul>
-					<li>
-						<Link to="/nav1">
-		                  <span className="nav-text">nav 1</span>
-		                </Link>
-					</li>
-					<li>
-						<Link to="/nav2">
-		                  <span className="nav-text">nav 2</span>
-		                </Link>
-					</li>
-					<li>
-						<Link to="/nav2">
-		                  <span className="nav-text">nav 3</span>
-		                </Link>
-					</li>
-					<li>
-						<Link to="/LogoGather">
-		                  <span className="nav-text">LogoGather</span>
-		                </Link>
-					</li>
-					<li>
-						<Link to="/CollectionsPage">
-		                  <span className="nav-text">CollectionsPage</span>
-		                </Link>
-					</li>
-				</ul>
-				<div>{this.props.children}</div>
+				<Link to="/nav1">入口1</Link>
+				<div style={{height: '1em'}} />
+				<Link to="/Main">入口2</Link>
+				<div style={{height: '1em'}} />
+				<Link to="/nav3">入口3</Link>
 			</div>
 		)
 	}
-}
-
-Home.propTypes = {
-	children: PropTypes.object.isRequired,
 }
